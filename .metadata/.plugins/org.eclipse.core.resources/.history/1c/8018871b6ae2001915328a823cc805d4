@@ -1,0 +1,57 @@
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Observable;
+
+public class Comunicacion extends Observable implements Runnable {
+	
+	private ServerSocket ss;
+	private Socket s;
+	private DataInputStream entrada;
+	private DataOutputStream salida;
+	
+	public Comunicacion() {		
+		try {
+			ss = new ServerSocket(5000);
+			s = ss.accept();
+			entrada = new DataInputStream(s.getInputStream());
+			salida = new DataOutputStream(s.getOutputStream());
+			System.out.println("CONECTADO");
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}			
+	}
+	
+
+	@Override
+	public void run() {
+		while(true) {			
+			try {
+				recibir();
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {				
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void recibir() throws IOException {
+		String mensaje = entrada.readUTF();
+		setChanged();
+		notifyObservers(mensaje);
+		clearChanged();		
+	}
+	
+	public void enviar(String mensaje) {
+		try {
+			salida.writeUTF(mensaje);
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}
+	}
+
+}
